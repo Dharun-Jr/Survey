@@ -10,8 +10,10 @@ export default function Home() {
   const [stage, setStage] = useState("welcome"); // welcome | survey | completed
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [finalXp, setFinalXp] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   const startSurvey = async () => {
+    setIsLoading(true);
     try {
       const res = await fetch("/api/start-session", { method: "POST" });
       const data = await res.json();
@@ -22,6 +24,8 @@ export default function Home() {
       // Start anyway with a local fallback ID
       setSessionId("local-" + Date.now());
       setStage("survey");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -81,12 +85,13 @@ export default function Home() {
         <div className="mt-6 w-full flex justify-center">
           <motion.button
             onClick={startSurvey}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 w-full max-w-xs"
+            disabled={isLoading}
+            whileHover={!isLoading ? { scale: 1.02 } : {}}
+            whileTap={!isLoading ? { scale: 0.98 } : {}}
+            className={`group inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold rounded-lg shadow-md transition-all duration-200 w-full max-w-xs ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-lg'}`}
           >
-            Start Quest
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            {isLoading ? "Connecting to server..." : "Start Quest"}
+            {!isLoading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
           </motion.button>
         </div>
 
